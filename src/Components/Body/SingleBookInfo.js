@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { BOOK_API } from "../../utils/constant";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { BOOK_API, USER_API } from "../../utils/constant";
 import BookCard from "./BookCard";
+import { useSelector } from "react-redux";
 
 const SingleBookInfo = () => {
   const [book, setBook] = useState(null);
@@ -9,6 +10,8 @@ const SingleBookInfo = () => {
   const [booksWithSameGenre, setBooksWithSameGenre] = useState(null);
   const [booksWithSamePublisher, setBooksWithSamePublisher] = useState(null);
   const params = useParams();
+  const user = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,12 +19,82 @@ const SingleBookInfo = () => {
         const response = await fetch(`${BOOK_API}book-info/${params.isbn}`);
         const jsonResponse = await response.json();
         setBook(jsonResponse);
+        console.log(jsonResponse);
       } catch (err) {
         console.error("Error : " + err);
       }
     };
     fetchData();
   }, [params.isbn]);
+
+  const handleLike = async (isbn) => {
+    try {
+      // Ensure user is logged in
+      if (!user || !user.userId) {
+        alert("You must be logged in to add books to your wishlist.");
+        setTimeout(() => navigate("/login"), 1000);
+        return;
+      }
+
+      const response = await fetch(
+        `${USER_API}${user.userId}/add-to-wishlist/${isbn}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+      alert("Book added to wishlist!");
+      // setIsLike(true); // Toggle the like state
+    } catch (error) {
+      console.error(error.message);
+      alert("Failed to add book to wishlist.");
+    }
+  };
+
+  const handleCart = async (isbn) => {
+    try {
+      // Ensure user is logged in
+      if (!user || !user.userId) {
+        alert("You must be logged in to add books to your cart.");
+        setTimeout(() => navigate("/login"), 1000);
+        return;
+      }
+
+      const response = await fetch(
+        `${USER_API}${user.userId}/add-to-cart/${isbn}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+      alert("Book added to cart!");
+      setTimeout(() => navigate(`/${user.userId}/cart`), 1000);
+      // setIsLike(true);
+    } catch (error) {
+      console.error(error.message);
+      alert("Failed to add book to cart.");
+    }
+  };
 
   useEffect(() => {
     const fetchBooksWithSimilarAuthor = async () => {
@@ -149,13 +222,19 @@ const SingleBookInfo = () => {
             <div className="w-2/12 p-4 flex justify-center items-center">
               <div className="bg-gradient-to-b from-white to-gray-200 dark:from-gray-800 dark:to-gray-600 h-64 w-60 rounded-xl flex items-center justify-center ">
                 <div className="bg-white h-60 w-56 flex justify-center items-center flex-col border dark:border-gray-900 rounded-lg shadow-md dark:bg-gray-800">
-                  <h2 className="w-36 shadow shadow-black text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 cursor-pointer my-2.5">
+                  <h2
+                    onClick={() => handleCart(book.isbn)}
+                    className="w-36 shadow shadow-black text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 cursor-pointer my-2.5"
+                  >
                     Add to cart
                   </h2>
                   <h2 className="w-36 shadow shadow-black text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800 cursor-pointer my-2.5">
                     Buy Now
                   </h2>
-                  <h2 className="w-36 shadow shadow-black text-white bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-violet-600 dark:hover:bg-violet-700 dark:focus:ring-violet-800 cursor-pointer my-2.5">
+                  <h2
+                    onClick={() => handleLike(book.isbn)}
+                    className="w-36 shadow shadow-black text-white bg-violet-700 hover:bg-violet-800 focus:ring-4 focus:outline-none focus:ring-violet-300 font-medium rounded-full text-sm px-5 py-2.5 text-center dark:bg-violet-600 dark:hover:bg-violet-700 dark:focus:ring-violet-800 cursor-pointer my-2.5"
+                  >
                     Add to Wishlist
                   </h2>
                 </div>

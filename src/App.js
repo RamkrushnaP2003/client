@@ -10,6 +10,8 @@ import SingleBookInfo from "./Components/Body/SingleBookInfo.js";
 import MyStore from "./Components/Body/MyStore.js";
 import PublishNewBook from "./Components/Body/PublishNewBook.js";
 import EditBook from "./Components/Body/EditBook.js";
+import Cart from "./Components/Body/Cart.js";
+import Wishlist from "./Components/Body/Wishlist.js";
 
 function AppLayout() {
   return (
@@ -37,6 +39,8 @@ function App() {
               path="/:userId/book-store/edit-book/:isbn"
               element={<EditBook />}
             />
+            <Route path="/:userId/wishlist" element={<Wishlist />} />
+            <Route path="/:userId/cart" element={<Cart />} />
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
